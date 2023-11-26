@@ -1,6 +1,6 @@
 # AutoClashBot
 
-AutoClashBot is a Bot for Clash of Clans for automatization. The bot is using Bleustacks as a Virtual Device. 
+AutoClashBot is a Bot for Clash of Clans. The bot is using Bluestacks as Virtual Device.
 
 ### Features:
 - [ ] Attack Dead Bases
