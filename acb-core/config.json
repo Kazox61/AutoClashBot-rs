@@ -1,0 +1,17 @@
+{
+    "use_server": true,
+    "bluestacks_exe_path": "C:/Program Files/BlueStacks_nxt/HD-PLAYER.exe",
+    "bluestacks_config_path": "C:/ProgramData/BlueStacks_nxt/bluestacks.conf",
+    "instance_configs": [
+        {
+            "instance_name": "Pie64",
+            "minitouch_port": 59800,
+            "server_port" : 57575
+        },
+        {
+            "instance_name": "Pie64_1",
+            "minitouch_port": 59801,
+            "server_port" : 57576
+        }
+    ]
+}
