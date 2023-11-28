@@ -2,17 +2,14 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{BufReader, AsyncBufReadExt, AsyncReadExt};
 use std::io::{Read, Write};
 
-use std::sync::mpsc::{self, Sender, Receiver};
-
 pub struct Client {
-    sender: Sender<String>,
     buff_reader: BufReader<TcpStream>
 }
 
 impl Client {
-    pub fn new(sender: Sender<String>, stream: TcpStream) -> Client {
+    pub fn new(stream: TcpStream) -> Client {
         let mut buff_reader = BufReader::new(stream);
-        Client { sender, buff_reader }
+        Client { buff_reader }
     }
 
     pub async fn read(&mut self) {

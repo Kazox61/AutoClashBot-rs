@@ -6,10 +6,18 @@ mod config;
 mod instance;
 
 use std::{fs, thread, sync::mpsc::{Sender, Receiver}};
-
+use crate::server::Client;
 use instance::Instance;
 use std::sync::mpsc;
 use std::io;
+use lazy_static::lazy_static;
+use futures::lock::Mutex;
+use async_event_emitter::AsyncEventEmitter;
+use tokio::net::{TcpListener, TcpStream};
+lazy_static! {
+    // Export the emitter with `pub` keyword
+    pub static ref EVENT_EMITTER: Mutex<AsyncEventEmitter> = Mutex::new(AsyncEventEmitter::new());
+}
 
 #[tokio::main]
 async fn main() {
@@ -29,8 +37,19 @@ async fn main() {
         
         tokio::spawn(async move {
             _instance.run().await;
-        });   
+        });  
     }
+
+    tokio::spawn(async move {
+        let listener = TcpListener::bind(format!("127.0.0.1:{}", 21212)).await.unwrap();
+        while let Ok((stream, _)) = listener.accept().await {
+            let mut client = Client::new(stream);
+            tokio::spawn(async move {
+                let received = client.read_all().await;
+                EVENT_EMITTER.lock().await.emit("Hello", received).await.unwrap();
+            });
+        }
+    });
 
     let mut guess = String::new();
 
@@ -42,7 +61,8 @@ async fn main() {
 
 let contents = fs::read_to_string("config.json").unwrap();
     let test: config::Config = serde_json::from_str(&contents).unwrap();
-    println!("{}", test.instance_configs[0].instance_name);
+    println!
+    ("{}", test.instance_configs[0].instance_name);
 
 let virtual_device = android::VirtualDevice::new(String::from("Pie64"));
     let adb_client = adb::AdbClient::new();

@@ -2,10 +2,10 @@ import socket
 
 # Server details
 host = 'localhost'  # Change this to the IP address or hostname of the server
-port = 57575  # The port you want to connect to
+port = 21212  # The port you want to connect to
 
 # Data to be sent
-data_to_send = "Moin\0"
+data_to_send = "Pie64\0"
 
 # Create a socket object
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
