@@ -1,5 +1,4 @@
-use crate::{config::InstanceConfig, server::Client};
-use std::sync::mpsc::{self, Sender, Receiver};
+use crate::config::InstanceConfig;
 use crate::EVENT_EMITTER;
 use tokio::time::{sleep, Duration};
 
@@ -10,7 +9,7 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub async fn new(port: u32, bluestacks_exe_path: String, bluestacks_config_path: String, instance_config: InstanceConfig) -> Instance {
+    pub async fn new(bluestacks_exe_path: String, bluestacks_config_path: String, instance_config: InstanceConfig) -> Instance {
         Instance {
             bluestacks_exe_path,
             bluestacks_config_path,

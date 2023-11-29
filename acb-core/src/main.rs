@@ -5,15 +5,14 @@ mod adb;
 mod config;
 mod instance;
 
-use std::{fs, thread, sync::mpsc::{Sender, Receiver}};
+use std::fs;
 use crate::server::Client;
 use instance::Instance;
-use std::sync::mpsc;
 use std::io;
 use lazy_static::lazy_static;
 use futures::lock::Mutex;
 use async_event_emitter::AsyncEventEmitter;
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpListener;
 lazy_static! {
     // Export the emitter with `pub` keyword
     pub static ref EVENT_EMITTER: Mutex<AsyncEventEmitter> = Mutex::new(AsyncEventEmitter::new());
@@ -28,7 +27,6 @@ async fn main() {
 
         println!("Instance: {} created!", instance_config.instance_name);
         let mut _instance = Instance::new(
-            instance_config.server_port,
             conf.bluestacks_exe_path.clone(),
             conf.bluestacks_config_path.clone(), 
             instance_config
