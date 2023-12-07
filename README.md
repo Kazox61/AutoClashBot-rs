@@ -1,4 +1,4 @@
-# AutoClashBot
+# AutoClashBot-rs
 
 AutoClashBot is a Bot for Clash of Clans. The bot is using Bluestacks as Virtual Device.
 
