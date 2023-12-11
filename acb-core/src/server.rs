@@ -1,42 +1,101 @@
-use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{BufReader, AsyncBufReadExt, AsyncReadExt};
-use std::io::{Read, Write};
+use std::io::Read;
+use std::net::{TcpListener, TcpStream};
+use std::sync::mpsc::Sender;
+use byteorder::{BigEndian, ReadBytesExt};
+
+#[derive(Debug)]
+#[repr(u16)]
+pub enum DaemonCommands {
+    StartInstance = 0
+}
+
+impl DaemonCommands {
+    fn from_u16(value: u16) -> Option<DaemonCommands> {
+        match value {
+            0 => Some(DaemonCommands::StartInstance),
+            _ => None
+        }
+    }
+}
+
+pub struct DaemonMessage {
+    pub daemon_command: DaemonCommands,
+    pub instance_id: Option<u16>,
+    pub message: String
+}
+
+pub struct Server {
+    listener: TcpListener,
+    sender: Sender<DaemonMessage>
+}
+
+impl Server {
+    pub fn new(sender: Sender<DaemonMessage>) -> Self {
+        let listener = TcpListener::bind("127.0.0.1:9339").unwrap();
+        println!("Server started");
+        Server {
+            listener,
+            sender
+        }
+    }
+
+    pub fn run(&self) {
+        println!("Server waiting for incoming connections");
+        for stream in self.listener.incoming() {
+            match stream {
+                Ok(stream) => {
+                    let sender = self.sender.clone();
+                    std::thread::spawn(move || {
+                        println!("New client connected");
+                        let mut client = Client::new(stream, sender);
+                        client.read()
+                    });
+                },
+                Err(e) => eprintln!("Error accepting connection: {}", e)
+            }
+        }
+    }
+}
+
 
 pub struct Client {
-    buff_reader: BufReader<TcpStream>
+    stream: TcpStream,
+    sender: Sender<DaemonMessage>
 }
 
 impl Client {
-    pub fn new(stream: TcpStream) -> Client {
-        let mut buff_reader = BufReader::new(stream);
-        Client { buff_reader }
+    pub fn new(stream: TcpStream, sender: Sender<DaemonMessage>) -> Client {
+        Client { stream, sender }
     }
 
-    pub async fn read(&mut self) {
-        let mut buffer = [0, 255];
-        let amount = self.buff_reader.read(&mut buffer).await.unwrap();
-        let received = String::from_utf8_lossy(&buffer[..amount]).to_string();
-        println!("{}", received);
-    }
-
-    pub async fn read_all(&mut self) -> String {
-        let mut result = String::new();
-
+    pub fn read(&mut self) {
+        let mut buffer = [0; 9];
         loop {
-            let mut buffer = [0; 255];
-
-            match self.buff_reader.read(&mut buffer).await {
-                Ok(0) => break,
-                Ok(amount) => {
-                    let received = String::from_utf8_lossy(&buffer[..amount]).to_string();
-                    result.push_str(&received);
-                    if result.as_bytes().last() == Some(&b'\0') {
-                        break;
+            match self.stream.read(&mut buffer) {
+                Ok(bytes_read) => {
+                    if bytes_read == 0 {
+                        println!("Client disconnected: {:?}", self.stream.peer_addr());
+                        return;
                     }
+
+                    let instance_id = std::io::Cursor::new(&buffer[..2]).read_u16::<BigEndian>().unwrap();
+                    let command_id = std::io::Cursor::new(&buffer[2..4]).read_u16::<BigEndian>().unwrap();
+
+                    let dmsg = DaemonMessage {
+                        daemon_command: DaemonCommands::from_u16(command_id).unwrap(),
+                        instance_id: Some(instance_id),
+                        message: String::new()
+                    };
+
+
+                    self.sender.send(dmsg).unwrap();
+                    //println!("Received: {}", String::from_utf8_lossy(&buffer[0..bytes_read]));
                 }
-                Err(_) => break
+                Err(e) => {
+                    eprintln!("Error reading from client: {}", e);
+                    return;
+                }
             }
         }
-        result
     }
 }

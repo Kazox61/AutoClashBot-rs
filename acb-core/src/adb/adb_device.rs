@@ -3,9 +3,11 @@ use std::str;
 use crate::adb::{command, RustADBError};
 use std::env;
 
+
+#[derive(Clone)]
 pub struct AdbDevice {
     adb_path: String,
-    serial_number: String
+    pub serial_number: String
 }
 
 impl AdbDevice {
@@ -16,11 +18,11 @@ impl AdbDevice {
         }
     }
 
-    pub fn start_cmd(&self, command: &str) -> Result<Output, RustADBError> {
+    pub fn start_cmd(&self, command: Vec<&str>) -> Result<Output, RustADBError> {
         command::start_cmd(&self.adb_path, command, Some(self.serial_number.as_str()))
     }
 
-    pub fn cmd(&self, command: &str) -> Result<String, RustADBError> {
+    pub fn cmd(&self, command: Vec<&str>) -> Result<String, RustADBError> {
         let output = match self.start_cmd(command) {
             Ok(output) => output,
             Err(err) => return Err(err)
@@ -32,25 +34,29 @@ impl AdbDevice {
     }
 
     pub fn shell(&self, cmd: &str) -> Result<String, RustADBError> {
-        self.cmd(format!("shell {}", cmd).as_str())
+        self.cmd(vec!["shell", cmd])
+    }
+
+    pub fn root(&self) -> Result<String, RustADBError>{
+        self.cmd(vec!["root"])
     }
 
     pub fn push(&self, local: &str, remote: &str) -> Result<String, RustADBError> {
-        self.cmd(format!("push {} {}", local, remote).as_str())
+        self.cmd(vec!["push", local, remote])
     }
 
     pub fn pull(&self, remote: &str, local: &str) -> Result<String, RustADBError> {
-        self.cmd(format!("pull {} {}", remote, local).as_str())
+        self.cmd(vec!["pull", remote, local])
     }
 
     pub fn forward(&self, local: &str, remote: &str) -> Result<String, RustADBError> {
-        self.cmd(format!("forward {} {}", local, remote).as_str())
+        self.cmd(vec!["forward", local, remote])
     }
 
     pub fn screencap(&self) -> Result<String, RustADBError> {
         let temp = env::temp_dir().join("acb-tmp.png");
         let temp_path = temp.as_path().to_str().unwrap();
-        self.cmd(format!("exec-out screencap -p > {}", temp_path).as_str())
+        self.cmd(vec![format!("exec-out screencap -p > {}", temp_path).as_str()])
     }
 
     pub fn start_app(&self, package: &str) -> Result<String, RustADBError> {

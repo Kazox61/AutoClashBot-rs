@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
-tokio = { version = "1", features = ["full"] }
-futures = "0.3.29"
 async-event-emitter = "0.1.2"
 lazy_static = "1.4.0"
+regex = "1.10.2"
+byteorder = "1.5.0"

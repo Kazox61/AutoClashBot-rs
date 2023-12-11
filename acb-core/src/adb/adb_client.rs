@@ -3,6 +3,7 @@ use std::str;
 use crate::adb::{AdbDevice, command, RustADBError};
 
 
+#[derive(Clone)]
 pub struct AdbClient {
     adb_path: String,
 }
@@ -14,11 +15,11 @@ impl AdbClient {
         }
     }
 
-    pub fn start_cmd(&self, command: &str) -> Result<Output, RustADBError> {
+    pub fn start_cmd(&self, command: Vec<&str>) -> Result<Output, RustADBError> {
         command::start_cmd(&self.adb_path, command, None)
     }
 
-    pub fn cmd(&self, command: &str) -> Result<String, RustADBError> {
+    pub fn cmd(&self, command: Vec<&str>) -> Result<String, RustADBError> {
         let output = match self.start_cmd(command) {
             Ok(output) => output,
             Err(err) => return Err(err)
@@ -30,18 +31,18 @@ impl AdbClient {
     }
 
     pub fn start_server(&self) -> Result<String, RustADBError> {
-        self.cmd("start-server")
+        self.cmd(vec!["start-server"])
     }
 
     pub fn kill_server(&self) -> Option<RustADBError> {
-        match self.cmd("kill-server") {
+        match self.cmd(vec!["kill-server"]) {
             Ok(_) => None,
             Err(err) => Some(err)
         }
     }
 
     pub fn version(&self) -> Result<String, RustADBError> {
-        match self.cmd("version") {
+        match self.cmd(vec!["version"]) {
             Ok(output) => Ok(output.trim().split("\n").next().unwrap().to_string()),
             Err(err) => Err(err)
         }
@@ -49,7 +50,7 @@ impl AdbClient {
 
     pub fn list_devices(&self) -> Result<Vec<String>, RustADBError> {
         let mut devices: Vec<String> = vec![];
-        let mut output = match self.cmd("devices") {
+        let mut output = match self.cmd(vec!["devices"]) {
             Ok(output) => output,
             Err(err) => return Err(err)
         };
@@ -88,7 +89,7 @@ impl AdbClient {
         Ok(devices)
     }
 
-    pub fn device(&self, serial_number: String) -> Result<AdbDevice, RustADBError> {
+    pub fn device(&self, serial_number: &str) -> Result<AdbDevice, RustADBError> {
         let list_devices = match self.list_devices() {
             Ok(list) => list,
             Err(err) => return Err(err)
@@ -102,7 +103,7 @@ impl AdbClient {
     }
 
     pub fn connect(&self, serial_number: &str) -> Option<RustADBError> {
-        match self.cmd(format!("connect {}", serial_number).as_str()) {
+        match self.cmd(vec![format!("connect {}", serial_number).as_str()]) {
             Ok(output) => {
                 if output.trim() == format!("connected to {}", serial_number) {
                     return None;

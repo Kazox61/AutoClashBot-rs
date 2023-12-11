@@ -1,5 +1,7 @@
-mod virtual_device;
+mod bluestacks;
 mod minitouch;
+mod android;
 
-pub use virtual_device::VirtualDevice;
+pub use bluestacks::Bluestacks;
 pub use minitouch::Minitouch;
+pub use android::Android;

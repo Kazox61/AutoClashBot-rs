@@ -4,55 +4,17 @@ mod village;
 mod adb;
 mod config;
 mod instance;
+mod auto_clash_bot;
 
-use std::fs;
-use crate::server::Client;
-use instance::Instance;
-use std::io;
-use lazy_static::lazy_static;
-use futures::lock::Mutex;
-use async_event_emitter::AsyncEventEmitter;
-use tokio::net::TcpListener;
-lazy_static! {
-    // Export the emitter with `pub` keyword
-    pub static ref EVENT_EMITTER: Mutex<AsyncEventEmitter> = Mutex::new(AsyncEventEmitter::new());
-}
 
-#[tokio::main]
-async fn main() {
-    let config_string = fs::read_to_string("config.json").unwrap();
-    let conf: config::Config = serde_json::from_str(&config_string).unwrap();
+use crate::auto_clash_bot::AutoClashBot;
 
-    for instance_config in conf.instance_configs {
 
-        println!("Instance: {} created!", instance_config.instance_name);
-        let mut _instance = Instance::new(
-            conf.bluestacks_exe_path.clone(),
-            conf.bluestacks_config_path.clone(), 
-            instance_config
-        ).await;
+use std::process::{Command, Output};
 
-        
-        tokio::spawn(async move {
-            _instance.run().await;
-        });  
-    }
-
-    tokio::spawn(async move {
-        let listener = TcpListener::bind(format!("127.0.0.1:{}", 21212)).await.unwrap();
-        while let Ok((stream, _)) = listener.accept().await {
-            let mut client = Client::new(stream);
-            tokio::spawn(async move {
-                let received = client.read_all().await;
-                EVENT_EMITTER.lock().await.emit("Hello", received).await.unwrap();
-            });
-        }
-    });
-
-    let mut guess = String::new();
-
-    io::stdin().read_line(&mut guess)
-        .expect("Failed to read line");
+fn main() {
+    let mut acb = AutoClashBot::new();
+    acb.run();
 }
 
 /*
