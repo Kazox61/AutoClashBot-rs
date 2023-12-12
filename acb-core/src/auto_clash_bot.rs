@@ -32,7 +32,7 @@ pub struct AutoClashBot {
 
 impl AutoClashBot {
     pub fn new() -> AutoClashBot {
-        let config_string = fs::read_to_string("config.json").unwrap();
+        let config_string = fs::read_to_string("./assets/config/config.json").unwrap();
         let conf: Config = serde_json::from_str(&config_string).unwrap();
 
         let (tx, rx) = mpsc::channel();
@@ -53,22 +53,27 @@ impl AutoClashBot {
 
     pub fn start_instance(&mut self, index: u16) {
         let instance_conf = self.conf.instances.get(index as usize).unwrap().clone();
-        let instance_name = self.instance_names.get(index as usize).unwrap();
+        let instance_name = self.instance_names.get(index as usize).unwrap().clone();
 
         println!("Start Instance: {}", instance_name);
         let minitouch_port = self.conf.minitouch_start_port + index as u32;
 
-        let mut instance = Instance::new(
-            self.conf.bluestacks_app_path.clone(),
-            self.conf.bluestacks_conf_path.clone(),
-            self.conf.bluestacks_shared_folder_path.clone(),
-            instance_name.clone(),
-            minitouch_port,
-            index,
-            instance_conf
-        );
+        let bluestacks_app_path = self.conf.bluestacks_app_path.clone();
+        let bluestacks_conf_path = self.conf.bluestacks_conf_path.clone();
+        let bluestacks_shared_folder_path = self.conf.bluestacks_shared_folder_path.clone();
 
-        let server_handle = std::thread::spawn(move || instance.start());
+        let server_handle = std::thread::spawn(move || {
+            let mut instance = Instance::new(
+                bluestacks_app_path,
+                bluestacks_conf_path,
+                bluestacks_shared_folder_path,
+                instance_name,
+                minitouch_port,
+                index,
+                instance_conf
+            );
+            instance.start()
+        });
         self.threads.push(server_handle);
     }
 

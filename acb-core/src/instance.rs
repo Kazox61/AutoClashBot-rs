@@ -1,5 +1,7 @@
+use std::ops::Deref;
 use crate::android::Android;
 use crate::config::InstanceConfig;
+use crate::village::VillageHandler;
 
 pub struct Instance {
     bluestacks_app_path: String,
@@ -8,8 +10,7 @@ pub struct Instance {
     bluestacks_instance_name: String,
     minitouch_port: u32,
     instance_index: u16,
-    instance_config: InstanceConfig,
-    android: Android
+    instance_config: InstanceConfig
 }
 
 impl Instance {
@@ -21,13 +22,6 @@ impl Instance {
                instance_index: u16,
                instance_config: InstanceConfig
     ) -> Self {
-        let android = Android::new(
-            bluestacks_app_path.clone(),
-            bluestacks_conf_path.clone(),
-            bluestacks_shared_folder_path.clone(),
-            bluestacks_instance_name.clone(),
-            minitouch_port
-        );
 
         Instance {
             bluestacks_app_path,
@@ -36,12 +30,21 @@ impl Instance {
             bluestacks_instance_name,
             minitouch_port,
             instance_index,
-            instance_config,
-            android
+            instance_config
         }
     }
 
     pub fn start(&mut self) {
-        self.android.init();
+        let mut android = Android::new(
+            self.bluestacks_app_path.clone(),
+            self.bluestacks_conf_path.clone(),
+            self.bluestacks_shared_folder_path.clone(),
+            self.bluestacks_instance_name.clone(),
+            self.minitouch_port
+        );
+        android.init();
+        let profiles = self.instance_config.profiles.deref().clone();
+        let village_handler = VillageHandler::new(android, Vec::from(profiles));
+        village_handler.run();
     }
 }

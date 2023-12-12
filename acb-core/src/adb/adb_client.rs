@@ -103,7 +103,7 @@ impl AdbClient {
     }
 
     pub fn connect(&self, serial_number: &str) -> Option<RustADBError> {
-        match self.cmd(vec![format!("connect {}", serial_number).as_str()]) {
+        match self.cmd(vec!["connect", serial_number]) {
             Ok(output) => {
                 if output.trim() == format!("connected to {}", serial_number) {
                     return None;

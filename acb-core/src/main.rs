@@ -5,15 +5,14 @@ mod adb;
 mod config;
 mod instance;
 mod auto_clash_bot;
-
+mod cv;
 
 use crate::auto_clash_bot::AutoClashBot;
 
 
-use std::process::{Command, Output};
-
 fn main() {
     let mut acb = AutoClashBot::new();
+    acb.start_instance(0); // for debugging
     acb.run();
 }
 

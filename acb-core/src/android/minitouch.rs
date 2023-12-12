@@ -2,8 +2,7 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::thread;
 use std::time::Duration;
-use serde_json::to_string;
-use crate::adb::{AdbClient, AdbDevice};
+use crate::adb::AdbDevice;
 
 
 const MINITOUCH_SOURCE_PATH: &str = "../files/minitouch/x86/minitouch";

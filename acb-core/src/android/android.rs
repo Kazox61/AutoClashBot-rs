@@ -7,10 +7,10 @@ pub struct Android {
     bluestacks_shared_folder_path: String,
     bluestacks_instance_name: String,
     minitouch_port: u32,
-    bluestacks: Bluestacks,
-    minitouch: Minitouch,
-    adb_client: Option<AdbClient>,
-    adb_device: Option<AdbDevice>
+    pub bluestacks: Bluestacks,
+    pub minitouch: Minitouch,
+    pub adb_client: Option<AdbClient>,
+    pub adb_device: Option<AdbDevice>
 }
 
 impl Android {
@@ -45,11 +45,8 @@ impl Android {
     pub fn init(&mut self) {
         let (client, device) = self.bluestacks.start();
         let screen_size = self.bluestacks.get_screen_size();
-        println!("Screensize: {} {}", screen_size.0, screen_size.1);
         self.minitouch.setup(device.clone(), screen_size.0, screen_size.1);
         self.adb_client = Some(client);
         self.adb_device = Some(device);
-        println!("Click test");
-        self.minitouch.click(400, 300, 10);
     }
 }

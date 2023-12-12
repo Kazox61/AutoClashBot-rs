@@ -1,7 +1,6 @@
 use std::process::Output;
 use std::str;
 use crate::adb::{command, RustADBError};
-use std::env;
 
 
 #[derive(Clone)]
@@ -51,12 +50,6 @@ impl AdbDevice {
 
     pub fn forward(&self, local: &str, remote: &str) -> Result<String, RustADBError> {
         self.cmd(vec!["forward", local, remote])
-    }
-
-    pub fn screencap(&self) -> Result<String, RustADBError> {
-        let temp = env::temp_dir().join("acb-tmp.png");
-        let temp_path = temp.as_path().to_str().unwrap();
-        self.cmd(vec![format!("exec-out screencap -p > {}", temp_path).as_str()])
     }
 
     pub fn start_app(&self, package: &str) -> Result<String, RustADBError> {

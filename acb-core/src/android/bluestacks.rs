@@ -1,13 +1,15 @@
-use std::collections::HashMap;
-use std::fs;
 use std::fs::OpenOptions;
 use std::io::{Read, Seek, Write};
 use std::process::Command;
-use std::ptr::write;
 use std::thread;
 use std::time::Duration;
+use image::DynamicImage;
 use regex::Regex;
 use crate::adb::{AdbClient, AdbDevice};
+
+
+const REMOTE_SHARED_FOLDER_PATH: &str = "/mnt/windows/BstSharedFolder";
+
 
 pub struct Bluestacks {
     pub app_path: String,
@@ -125,5 +127,22 @@ impl Bluestacks {
         let output = output.replace("\n", "");
         let values = output.trim().split_once("x").unwrap();
         return (values.0.parse().unwrap(), values.1.parse().unwrap())
+    }
+
+    pub fn screenshot(&self) -> Option<DynamicImage> {
+        let remote_image_path = REMOTE_SHARED_FOLDER_PATH.to_owned() + "/acb-tmp.png";
+        self.adb_device.as_ref().unwrap().shell(format!("screencap {}", remote_image_path).as_str()).unwrap();
+        let image_path = self.shared_folder_path.clone() + "/acb-tmp.png";
+
+        return match image::io::Reader::open(image_path) {
+            Err(_) => None,
+            Ok(reader) => match reader.with_guessed_format() {
+                Err(_) => None,
+                Ok(reader) => match reader.decode() {
+                    Err(_) => None,
+                    Ok(img) => Some(img)
+                }
+            }
+        }
     }
 }
